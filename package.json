@@ -1,0 +1,52 @@
+{
+  "name": "lzy",
+  "version": "1.0.0",
+  "description": "",
+  "exports": "./index.js",
+  "bin": {
+    "lazy": "./lib/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "jest --config jestconfig.json",
+    "generate-schema": "typescript-json-schema src/lazy.ts Lazy.Config --required --strictNullChecks --noExtraProps --out lib/schema.json",
+    "watch": "npm-watch"
+  },
+  "watch": {
+    "build": "src/*.ts",
+    "generate-schema": "src/lazy.ts"
+  },
+  "keywords": [],
+  "author": "pomdtr",
+  "license": "ISC",
+  "dependencies": {
+    "execa": "^6.0.0",
+    "globby": "^12.0.2",
+    "jsonschema": "^1.4.0",
+    "nunjucks": "^3.2.3",
+    "prettier": "^2.5.0",
+    "which": "^2.0.2",
+    "yaml": "^1.10.2",
+    "yargs": "^17.3.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "@types/minimist": "^1.2.2",
+    "@types/node": "^16.11.11",
+    "@types/which": "^2.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.5.0",
+    "@typescript-eslint/parser": "^5.5.0",
+    "eslint": "^8.3.0",
+    "eslint-config-prettier": "^8.3.0",
+    "jest": "^27.4.2",
+    "npm-watch": "^0.11.0",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.5.2",
+    "typescript-json-schema": "^0.52.0"
+  },
+  "engines": {
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+  }
+}

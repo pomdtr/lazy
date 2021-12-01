@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "ES2020",
+        "target": "es6",
+        "moduleResolution": "node",
+        "strict": true,
+        "skipLibCheck": true,
+        // "isolatedModules": true,
+        "esModuleInterop": true,
+        "outDir": "lib",
+    },
+    "include": [
+        "src/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/__tests__/*"
+    ]
+}

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function filterList() {
+    rows="$(jq -r '. | "\(.title)\t\u001b[30m\(.subtitle)\u001b[0m\t\(.actions[0])\t\(.)"')"
+    tmpfile=$(mktemp)
+    printf "%s" "$rows" > "$tmpfile"
+
+     fzf --delimiter '\t' \
+        --header "Alt+Enter: Secondary Actions, Alt+Space: Show Preview" \
+        --with-nth 1,2 \
+        --nth 1,2 \
+        --preview "echo {4} | jq -r .preview | /usr/bin/env bash" \
+        --preview-window "hidden:wrap" \
+        --ansi \
+        --reverse \
+        --no-clear \
+        --cycle \
+        --bind "alt-space:toggle-preview" \
+        --bind "left:reload(cat $tmpfile)+clear-query" \
+        --bind "right:reload(echo {4} | jq -r '.actions[] | \"\(.title)\t\(.type)\t\(.)\"')+clear-query" < "$tmpfile" \
+        | awk -F '\t' '{ print $3 }'
+}
+
+trap 'tput rmcup' SIGINT EXIT
+
+items="$(lazy list-commands)"
+while true; do
+    action="$(filterList <<<"$items")"
+    action_type="$(jq -r .type <<<"$action")"
+
+    if [ "$action_type" = "ref" ]; then
+        items="$(lazy list-items <<<"$action")"
+    else
+        lazy run-action <<<"$action"
+        tput rmcup
+        exit 0
+    fi
+done
