@@ -1,40 +1,108 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+set -o pipefail
+
+tmpdir=$(mktemp -d)
+trap 'rm -r $tmpdir' SIGINT EXIT
 
 function filterList() {
-    rows="$(jq -r '. | "\(.title)\t\u001b[30m\(.subtitle)\u001b[0m\t\(.actions[0])\t\(.)"')"
-    tmpfile=$(mktemp)
-    printf "%s" "$rows" > "$tmpfile"
-
-     fzf --delimiter '\t' \
-        --header "Alt+Enter: Secondary Actions, Alt+Space: Show Preview" \
+    fzf --delimiter '\t' \
+        --height 40% \
+        --header "Enter: Primary Action, Alt+r: Reload List, Alt+Enter: Show Preview" \
+        --expect "enter,alt-enter" \
         --with-nth 1,2 \
         --nth 1,2 \
-        --preview "echo {4} | jq -r .preview | /usr/bin/env bash" \
+        --preview "echo {3} | jq -c .preview | lazy run 2> /dev/null || echo No Preview" \
         --preview-window "hidden:wrap" \
-        --ansi \
         --reverse \
-        --no-clear \
         --cycle \
+        --bind "alt-r:reload(cat $tmpdir/current | lazy ref --skip-cache | jq -r '.items[] | \"\(.title)\t\(.subtitle)\t\(.actions[0])\t\(.)\"')" \
         --bind "alt-space:toggle-preview" \
-        --bind "left:reload(cat $tmpfile)+clear-query" \
-        --bind "right:reload(echo {4} | jq -r '.actions[] | \"\(.title)\t\(.type)\t\(.)\"')+clear-query" < "$tmpfile" \
-        | awk -F '\t' '{ print $3 }'
+        --bind "?:preview(echo {3} | jq -rc '.actions | map(.title) | to_entries | .[] | \"\(if .key == 0 then \"enter\" else \"alt-\(.key)\" end) -> \(.value)\"')"
 }
 
-trap 'tput rmcup' SIGINT EXIT
+function queryList() {
+    fzf --delimiter '\t' \
+        --header "Enter: Primary Action, Right Arrow: Show All Actions, Alt+Space: Show Preview" \
+        --expect "enter,alt-enter" \
+        --with-nth 1,2 \
+        --nth 1,2 \
+        --bind "change:reload(sleep 0.1; cat $tmpdir/current | lazy ref {q} | jq -r '.items[] | \"\(.title)\t\(.subtitle)\t\(.actions[0])\t\(.)\"')" \
+        --disabled \
+        --preview "echo {3} | jq -c .preview | lazy run" \
+        --preview-window "hidden:wrap" \
+        --reverse \
+        --cycle \
+        --bind "alt-space:toggle-preview" \
+        --bind "?:preview(echo {3} | jq -rc '.actions | map(.title) | to_entries | .[] | \"\(if .key == 0 then \"enter\" else \"alt-\(.key)\" end) -> \(.value)\"')"
+}
 
-items="$(lazy list-commands)"
-while true; do
-    action="$(filterList <<<"$items")"
-    action_type="$(jq -r .type <<<"$action")"
-
-    if [ "$action_type" = "ref" ]; then
-        items="$(lazy list-items <<<"$action")"
+# Decide between queryList and filterList
+function list() {
+    rows="$(jq -r '. | "\(.title)\t\(.subtitle)\t\(.)"' <"$1")"
+    if [ "$mode" = "filter" ]; then
+        selectedItem="$(filterList <<<"$rows")"
     else
-        lazy run-action <<<"$action"
-        tput rmcup
-        exit 0
+        selectedItem="$(queryList <<<"$rows")"
+    fi
+    exitCode="$?"
+    if [ "$exitCode" -eq 2 ]; then
+        exit 1
+    elif [ "$exitCode" -eq 130 ]; then
+        return 1
+    fi
+
+    row=$(tail -n 1 <<<"$selectedItem")
+    item=$(awk -F '\t' '{ print $3 }' <<<"$row")
+    shortcut=$(head -n 1 <<<"$selectedItem")
+    if [ "$shortcut" = "enter" ]; then
+        jq -c .actions[0] <<<"$item"
+    elif [ "$shortcut" = "alt-enter" ]; then
+        action=$(jq -rc '.actions[] | "\(.title)\t\(.)"' <<<"$item" \
+            | fzf --delimiter '\t' --with-nth 1 --nth 1 --height 40% --reverse --cycle)
+
+        if [ "$?" -eq 130 ]; then
+            list "$1"
+            return "$?"
+        fi
+
+        awk -F '\t' '{ print $2 }' <<<"$action"
+    fi
+}
+
+# Handle navigation between lists
+function navigate() {
+    if ! list "$tmpdir/$step_index"; then
+        if [ "$step_index" -eq 0 ]; then
+            exit 0
+        fi
+        step_index=$((step_index - 1))
+        navigate "$step_index"
+    fi
+}
+
+items="$(lazy ls)"
+mode=filter
+step_index=0
+while true; do
+    printf "%s" "$items" >"$tmpdir/$step_index"
+    navigate >"$tmpdir/next"
+
+    action_type="$(jq -r .type <"$tmpdir/next")"
+    if [ "$action_type" = "ref" ]; then
+        set -e
+        list="$(lazy ref <"$tmpdir/next")"
+        mode="$(jq -r '.type' <<<"$list")"
+        items="$(jq -cM '.items[]' <<<"$list")"
+        set +e
+
+        step_index=$((step_index + 1))
+        cp "$tmpdir/next" "$tmpdir/current"
+    else
+        lazy run <"$tmpdir/next"
+        if [ "$(jq '.updateItems' <"$tmpdir/next")" != "true" ]; then
+            exit 0
+        fi
+        items="$(lazy ref <"$tmpdir/current" | jq -r '.items[]')"
     fi
 done

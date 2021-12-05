@@ -3,33 +3,26 @@ export namespace Lazy {
   export interface Config {
     requirements?: string[];
     packageName: string;
-    icon?: string;
-    /**
-     * @ignore
-     */
-    filepath: string;
-    prefs?: StepEnv;
+    filepath?: string;
+    preferences?: StepEnv;
     steps: {
       [step_id: string]: Step;
     };
-    roots: RefAction[];
+    roots: Action[];
   }
 
-  export interface List {
+  export interface BaseStep {
     /**
      * @ignore
      */
     packageName: string;
-    /**
-     * @ignore
-     */
-    prefs: StepEnv;
     params?: StepEnv;
   }
 
-  export interface DynamicList extends List {
+  export interface DynamicList extends BaseStep {
     type: "filter" | "query";
-    items: ItemTemplate;
+    generator: string | Command;
+    items?: ItemTemplate;
   }
 
   export interface QueryList extends DynamicList {
@@ -38,30 +31,39 @@ export namespace Lazy {
 
   export interface FilterList extends DynamicList {
     type: "filter";
+    cache?: Cache;
+  }
+
+  export interface Cache {
+    key: string,
+    duration: string
   }
 
   export interface Item {
     title: string;
     subtitle?: string;
-    icon?: string;
-    preview?: string;
+    preview?: Command;
     actions?: Action[];
   }
 
   export interface ItemTemplate {
     title?: string;
     subtitle?: string;
-    icon?: string;
-    preview?: string;
+    preview?: string | Command;
     delimiter?: string;
-    generator: string | Command;
     actions?: Action[];
   }
 
   export type Step = FilterList | QueryList;
 
+  export interface List {
+    type: "filter" | "query"
+    items: Lazy.Item[]
+  }
+
   export interface Command {
     command: string;
+    updateItems?: boolean;
     errorMessage?: string;
     skip_lines?: number;
     shell?: string;
@@ -96,11 +98,10 @@ export namespace Lazy {
 
   export interface Package {
     steps: { [stepId: string]: Step };
-    prefs: StepEnv;
+    preferences: StepEnv;
   }
 
   export interface Root {
-    icon?: string;
     refs: RefAction[];
     packageName: string;
   }

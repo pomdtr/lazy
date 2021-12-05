@@ -7,20 +7,18 @@
     "lazy": "./lib/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run compile && npm run generate-schema",
+    "compile": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest --config jestconfig.json",
-    "generate-schema": "typescript-json-schema src/lazy.ts Lazy.Config --required --strictNullChecks --noExtraProps --out lib/schema.json",
-    "watch": "npm-watch"
-  },
-  "watch": {
-    "build": "src/*.ts",
-    "generate-schema": "src/lazy.ts"
+    "generate-schema": "typescript-json-schema src/lazy.ts Lazy.Config --required --titles --strictNullChecks --noExtraProps --defaultNumberType integer --out lib/schema.json",
+    "watch": "nodemon -e ts --exec \"npm run build\" --watch src"
   },
   "keywords": [],
   "author": "pomdtr",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^10.0.0",
     "execa": "^6.0.0",
     "globby": "^12.0.2",
     "jsonschema": "^1.4.0",
@@ -32,6 +30,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@adobe/jsonschema2md": "^6.1.4",
     "@types/jest": "^27.0.3",
     "@types/minimist": "^1.2.2",
     "@types/node": "^16.11.11",
@@ -41,10 +40,11 @@
     "eslint": "^8.3.0",
     "eslint-config-prettier": "^8.3.0",
     "jest": "^27.4.2",
-    "npm-watch": "^0.11.0",
+    "nodemon": "^2.0.15",
     "ts-jest": "^27.0.7",
     "typescript": "^4.5.2",
-    "typescript-json-schema": "^0.52.0"
+    "typescript-json-schema": "^0.52.0",
+    "wetzel": "^0.2.3"
   },
   "engines": {
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"

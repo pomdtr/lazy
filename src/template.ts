@@ -18,7 +18,7 @@ export function renderString(template: string, params: Record<string, unknown>) 
       ...params,
     });
   } catch (error) {
-    throw Error(JSON.stringify({ template, params, error }));
+    throw Error(JSON.stringify({ template, params, error }, null, 2));
   }
 }
 
