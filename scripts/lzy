@@ -8,7 +8,7 @@ trap 'rm -r $tmpdir' SIGINT EXIT
 function filterList() {
     fzf --delimiter '\t' \
         --height 40% \
-        --header "Enter: Primary Action, Alt+r: Reload List, Alt+Enter: Show Preview" \
+        --header "Enter: Primary Action, Alt-enter: list actions, Alt+r: Reload List, Alt+space: Show Preview, Escape: Go Back" \
         --expect "enter,alt-enter" \
         --with-nth 1,2 \
         --nth 1,2 \
@@ -23,7 +23,7 @@ function filterList() {
 
 function queryList() {
     fzf --delimiter '\t' \
-        --header "Enter: Primary Action, Right Arrow: Show All Actions, Alt+Space: Show Preview" \
+        --header "Enter: Primary Action, Alt-enter: list actions, Alt+space: Show Preview, Escape: Go Back" \
         --expect "enter,alt-enter" \
         --with-nth 1,2 \
         --nth 1,2 \
