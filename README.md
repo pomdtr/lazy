@@ -4,7 +4,7 @@ Lazy is an helper tool allowing you to build an interactive UI for any command l
 
 Lazy integrate with multiple client and it is easy to write a new one one. Currently two are available:
 
-- `FZF`:
+- `FZF`: [Bash Script](./scripts/lzy)
 - `Raycast` (Soon)
 
 ## Installation
@@ -12,9 +12,10 @@ Lazy integrate with multiple client and it is easy to write a new one one. Curre
 [Node](https://nodejs.org/en/download/) must be installed on you device.
 A NPM package will be created once the API will be stable.
 
-```
-git clone
-cd
+```txt
+git clone https://github.com/pomdtr/lazy.git
+cd lazy
+npm run build
 npm install -g
 ```
 
