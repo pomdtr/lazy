@@ -44,14 +44,14 @@ yargs(hideBin(process.argv))
       case "open":
         lazyApi.openAction(action);
         break;
-      case "run": {
+      case "copy":
+        lazyApi.CopyAction(action);
+        break;
+      default: {
         const stdout = await lazyApi.runAction(action);
         process.stdout.write(stdout);
         break;
       }
-      case "copy":
-        lazyApi.CopyAction(action);
-        break;
     }
 
   })
