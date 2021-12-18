@@ -93,8 +93,7 @@ export class LazyApi {
     if (!line) return { title: "No result" };
     const json = parseJson(line);
     const preview = typeof itemTemplate.preview == "string" ? { command: itemTemplate.preview } : "";
-    const columns = line.split(itemTemplate.delimiter || /\s+/);
-    const lineParams = { ...templateParams, line: { text: line, json, columns } };
+    const lineParams = { ...templateParams, line: { text: line, json } };
     const actions =
       itemTemplate.actions
         ?.map((action) => renderAction(action, lineParams))

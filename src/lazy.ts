@@ -31,7 +31,6 @@ export namespace Lazy {
     title?: string;
     subtitle?: string;
     preview?: string | Command;
-    delimiter?: string;
     actions?: Action[];
   }
 
