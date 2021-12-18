@@ -5,7 +5,7 @@ set -o pipefail
 tmpdir=$(mktemp -d)
 trap 'rm -r $tmpdir' SIGINT EXIT
 
-function filterList() {
+function filterRows() {
     fzf --delimiter '\t' \
         --height 40% \
         --header "Enter: Primary Action, Alt-enter: list actions, Alt+r: Reload List, Alt+space: Show Preview, Escape: Go Back" \
@@ -21,30 +21,9 @@ function filterList() {
         --bind "?:preview(echo {3} | jq -rc '.actions | map(.title) | to_entries | .[] | \"\(if .key == 0 then \"enter\" else \"alt-\(.key)\" end) -> \(.value)\"')"
 }
 
-function queryList() {
-    fzf --delimiter '\t' \
-        --header "Enter: Primary Action, Alt-enter: list actions, Alt+space: Show Preview, Escape: Go Back" \
-        --expect "enter,alt-enter" \
-        --with-nth 1,2 \
-        --nth 1,2 \
-        --bind "change:reload(sleep 0.1; cat $tmpdir/current | lazy ref {q} | jq -r '.items[] | \"\(.title)\t\(.subtitle)\t\(.actions[0])\t\(.)\"')" \
-        --disabled \
-        --preview "echo {3} | jq -c .preview | lazy run" \
-        --preview-window "hidden:wrap" \
-        --reverse \
-        --cycle \
-        --bind "alt-space:toggle-preview" \
-        --bind "?:preview(echo {3} | jq -rc '.actions | map(.title) | to_entries | .[] | \"\(if .key == 0 then \"enter\" else \"alt-\(.key)\" end) -> \(.value)\"')"
-}
-
-# Decide between queryList and filterList
-function list() {
+function step() {
     rows="$(jq -r '. | "\(.title)\t\(.subtitle)\t\(.)"' <"$1")"
-    if [ "$mode" = "filter" ]; then
-        selectedItem="$(filterList <<<"$rows")"
-    else
-        selectedItem="$(queryList <<<"$rows")"
-    fi
+    selectedItem="$(filterRows <<<"$rows")"
     exitCode="$?"
     if [ "$exitCode" -eq 2 ]; then
         exit 1
@@ -62,7 +41,7 @@ function list() {
             | fzf --delimiter '\t' --with-nth 1 --nth 1 --height 40% --reverse --cycle)
 
         if [ "$?" -eq 130 ]; then
-            list "$1"
+            step "$1"
             return "$?"
         fi
 
@@ -72,7 +51,7 @@ function list() {
 
 # Handle navigation between lists
 function navigate() {
-    if ! list "$tmpdir/$step_index"; then
+    if ! step "$tmpdir/$step_index"; then
         if [ "$step_index" -eq 0 ]; then
             exit 0
         fi
@@ -82,17 +61,15 @@ function navigate() {
 }
 
 items="$(lazy ls)"
-mode=filter
 step_index=0
 while true; do
     printf "%s" "$items" >"$tmpdir/$step_index"
     navigate >"$tmpdir/next"
 
     action_type="$(jq -r .type <"$tmpdir/next")"
-    if [ "$action_type" = "ref" ]; then
+    if [ "$action_type" = "push" ]; then
         set -e
-        list="$(lazy ref <"$tmpdir/next")"
-        mode="$(jq -r '.type' <<<"$list")"
+        list="$(lazy get <"$tmpdir/next")"
         items="$(jq -cM '.items[]' <<<"$list")"
         set +e
 
@@ -100,9 +77,6 @@ while true; do
         cp "$tmpdir/next" "$tmpdir/current"
     else
         lazy run <"$tmpdir/next"
-        if [ "$(jq '.updateItems' <"$tmpdir/next")" != "true" ]; then
-            exit 0
-        fi
-        items="$(lazy ref <"$tmpdir/current" | jq -r '.items[]')"
+        exit 0
     fi
 done

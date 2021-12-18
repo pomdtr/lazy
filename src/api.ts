@@ -1,62 +1,59 @@
+import { execSync } from "child_process";
 import dotenv from "dotenv";
-import * as execa from "execa";
 import { existsSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
-import { globby } from "globby";
+import glob from "glob";
 import { validate } from "jsonschema";
 import { homedir } from "os";
 import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
-import which from "which";
 import yaml from "yaml";
-import { Lazy } from "./lazy.js";
-import { renderAction, renderObj, renderString } from "./template.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { Lazy } from "./lazy";
+import { renderAction, renderObj, renderString } from "./template";
 
 export class LazyApi {
   packages: Record<string, Lazy.Package> = {};
-  roots: Lazy.Item[] = [];
-  schema = JSON.parse(readFileSync(resolve(dirname(__dirname), "schema.json"), "utf-8"));
+  rootActions: Lazy.Item[] = [];
+  schema = JSON.parse(readFileSync(resolve(dirname(__dirname), "lib", "schema.json"), "utf-8"));
   secrets: Record<string, string>;
   configDir: string;
 
-  constructor( configDir: string, secretsPath: string,) {
+  constructor(configDir: string, secretsPath: string) {
     this.configDir = configDir;
     this.secrets = existsSync(secretsPath) ? dotenv.parse(readFileSync(secretsPath, "utf-8")) : {};
   }
 
   async load(): Promise<void> {
-    const configs = await loadConfigs(this.configDir);
+    const configMap = await loadConfigs(this.configDir);
 
-    for (const config of configs) {
+    for (const [filepath, config] of Object.entries(configMap)) {
       const res = validate(config, this.schema);
       if (res.errors.length) {
-        throw Error(`Invalid config: ${res.errors[0].message}`);
+        throw Error(`Invalid config ${filepath}: ${res.errors[0]}`);
       }
     }
 
-    this.packages = Object.fromEntries(configs.map((config) => [config.packageName, getPackage(config)]));
+    this.packages = Object.fromEntries(
+      Object.values(configMap).map((config) => [config.packageName, getPackage(config)])
+    );
 
-    this.roots = configs.flatMap((config) =>
-      config.roots.map((root) => {
-        const packageName = root.type == "ref" ? root.packageName || config.packageName : config.packageName;
-        const action: Lazy.Action = root.type == "ref" ? { ...root, packageName } : root;
+    this.rootActions = Object.entries(configMap).flatMap(([filepath, config]) =>
+      config.rootActions.map((root) => {
+        const packageName = root.type == "push" ? root.packageName || config.packageName : config.packageName;
+        const action: Lazy.Action = root.type == "push" ? { ...root, packageName } : root;
         return {
           title: action.title,
           subtitle: packageName,
-          preview: { command: `cat ${config.filepath}` },
+          preview: { command: `cat ${filepath}` },
           actions: [
             { ...renderAction(action, { preferences: config.preferences, secrets: this.secrets }) },
-            { type: "run", command: `open ${config.filepath}`, title: "Open Config File" },
+            { type: "run", command: `open ${filepath}`, title: "Open Config File" },
           ],
         } as Lazy.Item;
       })
     );
   }
 
-  getStep(reference: Lazy.RefAction): Lazy.Step {
+  getStep(reference: Lazy.PushAction): Lazy.Step {
     const { target, params: refParams, packageName } = reference;
 
     const pkg = this.packages[packageName];
@@ -71,15 +68,20 @@ export class LazyApi {
     return { ...step, packageName, params: { ...step.params, ...refParams } };
   }
 
-  async runAction(command: Lazy.RunAction) {
-    return this.exec(command.command, command.shell);
+  async openAction(action: Lazy.OpenAction) {
+    return this.run(`open '${action.target}'`);
   }
 
-  exec(command: string, shell = "/bin/bash"): Promise<execa.ExecaReturnValue> {
-    return execa.execaCommand(command, { cwd: homedir(), shell }).catch((error) => {
-      console.error(error.message);
-      throw error;
-    });
+  async CopyAction(action: Lazy.CopyAction) {
+    return this.run("pbcopy", undefined, action.content);
+  }
+
+  async runAction(command: Lazy.RunAction) {
+    return this.run(command.command, command.shell);
+  }
+
+  run(command: string, shell = "/bin/bash", input?: string): string {
+    return execSync(command, { cwd: homedir(), shell, input, encoding: "utf-8", maxBuffer: 1024 * 1024 * 10 }).trim();
   }
 
   lineToItem(
@@ -97,7 +99,7 @@ export class LazyApi {
       itemTemplate.actions
         ?.map((action) => renderAction(action, lineParams))
         .filter((action) => !action.condition || action.condition == "true")
-        .map((action) => (action.type == "ref" ? { ...action, packageName } : action)) || [];
+        .map((action) => (action.type == "push" ? { ...action, packageName } : action)) || [];
 
     return {
       title: itemTemplate.title ? renderString(itemTemplate.title, lineParams) : line,
@@ -108,28 +110,23 @@ export class LazyApi {
   }
 
   async fetchLines(generator: Lazy.Command, templateParams: Record<string, unknown>): Promise<string[]> {
-    const { stdout } = await this.exec(renderString(generator.command, templateParams), generator.shell).catch(() => {
-      throw new Error(generator.errorMessage);
-    });
-
+    const stdout = await this.run(renderString(generator.command, templateParams), generator.shell);
     return stdout.split("\n");
   }
 
-  async getList(step: Lazy.Step, query = ""): Promise<Lazy.List> {
+  async getList(step: Lazy.Step): Promise<Lazy.List> {
     const itemTemplate = step.items;
     const packageName = step.packageName;
     const templateParams = {
       secrets: this.secrets,
       preferences: this.packages[packageName].preferences,
       params: step.params,
-      query,
     };
     const generator = typeof step.generator == "string" ? { command: step.generator } : step.generator;
 
     const lines = await this.fetchLines(generator, templateParams);
 
     return {
-      type: step.type,
       items: lines.map((line) => {
         return itemTemplate ? this.lineToItem(line, packageName, itemTemplate, templateParams) : { title: line };
       }),
@@ -137,24 +134,22 @@ export class LazyApi {
   }
 }
 
-export async function loadConfigs(configDir: string): Promise<Lazy.Config[]> {
-  const globs = await globby(`**/**.yaml`, { cwd: configDir });
+export async function loadConfigs(configDir: string): Promise<Record<string, Lazy.Config>> {
+  const matches = glob.sync("**/*.yaml", { cwd: configDir, absolute: true });
   const loadConfig = (filepath: string) =>
-    readFile(filepath, "utf-8").then((content) => ({ ...yaml.parse(content), filepath } as Lazy.Config));
-  return Promise.all(globs.map((glob) => loadConfig(resolve(configDir, glob))));
+    readFile(filepath, "utf-8").then((content) => yaml.parse(content) as Lazy.Config);
+  const entries = await Promise.all(matches.map(async (filepath) => [filepath, await loadConfig(filepath)]));
+  return Object.fromEntries(entries);
 }
 
 export function getPackage(config: Lazy.Config): Lazy.Package {
   const pkg: Lazy.Package = { steps: {}, preferences: config.preferences || {} };
-  for (const requirement of config.requirements || []) {
-    which.sync(requirement);
-  }
 
   pkg.preferences = config.preferences || {};
   for (const [step_id, step] of Object.entries(config.steps || {})) {
     const actions =
       step.items?.actions?.map((action) =>
-        action.type == "ref" ? { ...action, packageName: action.packageName || config.packageName } : action
+        action.type == "push" ? { ...action, packageName: action.packageName || config.packageName } : action
       ) || [];
     pkg.steps[step_id] = {
       ...config.steps[step_id],

@@ -3,40 +3,21 @@ export namespace Lazy {
   export interface Config {
     requirements?: string[];
     packageName: string;
-    filepath?: string;
     preferences?: StepEnv;
     steps: {
       [step_id: string]: Step;
     };
-    roots: Action[];
+    rootActions: Action[];
   }
 
-  export interface BaseStep {
+  export interface Step {
     /**
      * @ignore
      */
     packageName: string;
     params?: StepEnv;
-  }
-
-  export interface DynamicList extends BaseStep {
-    type: "filter" | "query";
     generator: string | Command;
     items?: ItemTemplate;
-  }
-
-  export interface QueryList extends DynamicList {
-    type: "query";
-  }
-
-  export interface FilterList extends DynamicList {
-    type: "filter";
-    cache?: Cache;
-  }
-
-  export interface Cache {
-    key: string,
-    duration: string
   }
 
   export interface Item {
@@ -54,10 +35,7 @@ export namespace Lazy {
     actions?: Action[];
   }
 
-  export type Step = FilterList | QueryList;
-
   export interface List {
-    type: "filter" | "query"
     items: Lazy.Item[]
   }
 
@@ -90,20 +68,25 @@ export namespace Lazy {
     params?: StepEnv;
   }
 
-  export interface RefAction extends BaseAction, StepReference {
-    type: "ref"
+  export interface PushAction extends BaseAction, StepReference {
+    type: "push"
   }
 
-  export type Action = RunAction | RefAction;
+  export interface OpenAction extends BaseAction {
+    type: "open";
+    target: string;
+  }
+
+  export interface CopyAction extends BaseAction {
+    type: "copy";
+    content: string;
+  }
+
+  export type Action = RunAction | PushAction | OpenAction | CopyAction;
 
   export interface Package {
     steps: { [stepId: string]: Step };
     preferences: StepEnv;
-  }
-
-  export interface Root {
-    refs: RefAction[];
-    packageName: string;
   }
 
   export interface StepEnv {

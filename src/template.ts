@@ -1,5 +1,5 @@
 import * as nunjucks from "nunjucks";
-import { Lazy } from "./lazy.js";
+import { Lazy } from "./lazy";
 
 const templateEnv = new nunjucks.Environment(null, { autoescape: false, throwOnUndefined: true });
 
@@ -23,6 +23,10 @@ export function renderString(template: string, params: Record<string, unknown>) 
 }
 
 export function renderAction(action: Lazy.Action, templateParams: Record<string, unknown>) {
-  if (action.type == "run") return renderObj(action, templateParams);
-  return { ...renderObj(action, templateParams), params: renderObj(action.params || {}, templateParams) } as Lazy.Action;
+  if (action.type == "push")
+    return {
+      ...renderObj(action, templateParams),
+      params: renderObj(action.params || {}, templateParams),
+    } as Lazy.Action;
+  return renderObj(action, templateParams);
 }
