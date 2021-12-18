@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest --config jestconfig.json",
     "generate-schema": "typescript-json-schema src/lazy.ts Lazy.Config --required --titles --strictNullChecks --noExtraProps --defaultNumberType integer --out lib/schema.json",
-    "watch": "nodemon -e ts --exec \"npm run build\" --watch src"
+    "dev": "nodemon -e ts --exec \"npm run build\" --watch src"
   },
   "keywords": [],
   "author": "pomdtr",
