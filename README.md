@@ -38,7 +38,7 @@ rootActions:
     title: Browse Home Directory
     target: list-files
     params:
-      directory: /
+      directory: $HOME/
   - type: push
     title: Browse Root Directory
     target: list-files
