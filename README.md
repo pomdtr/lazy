@@ -58,9 +58,20 @@ steps:
           params:
             directory: "{{ params.directory }}{{ row.text }}"
 
-        - title: Open
-          type: run
-          command: open "{{ params.directory }}{{ row.text }}"
+        - condition: "{{ row.text != '/' }}"
+          title: Go Up
+          type: push
+          target: list-files
+          params:
+            directory: "{{ params.directory }}../"
+
+        - title: Open {{row.text}}
+          type: open
+          target: open "{{ params.directory }}{{ row.text }}"
+
+        - title: Copy Absolute Path
+          type: copy
+          content: open "{{ params.directory }}{{ row.text }}"
 ```
 
 
