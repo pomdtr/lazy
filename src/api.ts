@@ -125,7 +125,8 @@ export class LazyApi {
 
   async fetchLines(generator: Lazy.Command, templateParams: Record<string, unknown>): Promise<string[]> {
     const stdout = await this.run(renderString(generator.command, templateParams), generator.shell);
-    return stdout.split("\n");
+    const lines = stdout.split("\n");
+    return generator.skip_lines ? lines.slice(generator.skip_lines) : lines;
   }
 
   async getList(step: Lazy.Step): Promise<Lazy.List> {
