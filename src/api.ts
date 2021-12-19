@@ -99,34 +99,35 @@ export class LazyApi {
     return execSync(command, { cwd: homedir(), shell, input, encoding: "utf-8", maxBuffer: 1024 * 1024 * 10 }).trim();
   }
 
-  lineToItem(
-    line: string,
+  rowToItem(
+    row: string,
     packageName: string,
     itemTemplate: Lazy.ItemTemplate,
     templateParams: Record<string, unknown>
   ): Lazy.Item {
-    if (!line) return { title: "No result" };
-    const json = parseJson(line);
+    if (!row) return { title: "No result" };
+    const json = parseJson(row);
     const preview = typeof itemTemplate.preview == "string" ? { command: itemTemplate.preview } : "";
-    const lineParams = { ...templateParams, line: { text: line, json } };
+    const delimiter = itemTemplate.delimiter ? new RegExp(itemTemplate.delimiter, "g") : /[^\w]+/g;
+    const rowParams = { ...templateParams, row: { text: row, json, colums: row.split(delimiter) } };
     const actions =
       itemTemplate.actions
-        ?.map((action) => renderAction(action, lineParams))
+        ?.map((action) => renderAction(action, rowParams))
         .filter((action) => !action.condition || action.condition == "true")
         .map((action) => (action.type == "push" ? { ...action, packageName } : action)) || [];
 
     return {
-      title: itemTemplate.title ? renderString(itemTemplate.title, lineParams) : line,
-      subtitle: itemTemplate.subtitle ? renderString(itemTemplate.subtitle, lineParams) : "",
-      preview: preview ? renderObj(preview, lineParams) : undefined,
+      title: itemTemplate.title ? renderString(itemTemplate.title, rowParams) : row,
+      subtitle: itemTemplate.subtitle ? renderString(itemTemplate.subtitle, rowParams) : "",
+      preview: preview ? renderObj(preview, rowParams) : undefined,
       actions,
     } as Lazy.Item;
   }
 
-  async fetchLines(generator: Lazy.Command, templateParams: Record<string, unknown>): Promise<string[]> {
+  async fetchLines(generator: Lazy.Generator, templateParams: Record<string, unknown>): Promise<string[]> {
     const stdout = await this.run(renderString(generator.command, templateParams), generator.shell);
-    const lines = stdout.split("\n");
-    return generator.skip_lines ? lines.slice(generator.skip_lines) : lines;
+    const rows = stdout.split("\n");
+    return generator.skip_rows ? rows.slice(generator.skip_rows) : rows;
   }
 
   async getList(step: Lazy.Step): Promise<Lazy.List> {
@@ -139,11 +140,11 @@ export class LazyApi {
     };
     const generator = typeof step.generator == "string" ? { command: step.generator } : step.generator;
 
-    const lines = await this.fetchLines(generator, templateParams);
+    const rows = await this.fetchLines(generator, templateParams);
 
     return {
-      items: lines.map((line) => {
-        return itemTemplate ? this.lineToItem(line, packageName, itemTemplate, templateParams) : { title: line };
+      items: rows.map((row) => {
+        return itemTemplate ? this.rowToItem(row, packageName, itemTemplate, templateParams) : { title: row };
       }),
     };
   }
@@ -181,9 +182,9 @@ export function getPackage(config: Lazy.Script): Lazy.Package {
   return pkg;
 }
 
-function parseJson(line: string) {
+function parseJson(row: string) {
   try {
-    return JSON.parse(line);
+    return JSON.parse(row);
   } catch (e) {
     return null;
   }

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 export namespace Lazy {
   export interface Script {
-    requirements?: string[];
+    requirements?: (string | Requirement)[];
+    author?: string;
+    description?: string;
     packageName: string;
     preferences?: StepEnv;
     steps: {
@@ -10,13 +12,22 @@ export namespace Lazy {
     rootActions: Action[];
   }
 
+  export interface Requirement {
+    name: string;
+    description?: string;
+  }
+
+  export interface Generator extends Command {
+    skip_rows?: number;
+  }
+
   export interface Step {
     /**
      * @ignore
      */
     packageName: string;
     params?: StepEnv;
-    generator: string | Command;
+    generator: string | Generator;
     items?: ItemTemplate;
   }
 
@@ -30,19 +41,17 @@ export namespace Lazy {
   export interface ItemTemplate {
     title?: string;
     subtitle?: string;
+    delimiter?: string;
     preview?: string | Command;
     actions?: Action[];
   }
 
   export interface List {
-    items: Lazy.Item[]
+    items: Lazy.Item[];
   }
 
   export interface Command {
     command: string;
-    updateItems?: boolean;
-    errorMessage?: string;
-    skip_lines?: number;
     shell?: string;
   }
 
@@ -68,7 +77,7 @@ export namespace Lazy {
   }
 
   export interface PushAction extends BaseAction, StepReference {
-    type: "push"
+    type: "push";
   }
 
   export interface OpenAction extends BaseAction {
