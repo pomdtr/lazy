@@ -1,7 +1,8 @@
 import * as nunjucks from "nunjucks";
 import { Lazy } from "./lazy";
 
-const templateEnv = new nunjucks.Environment(null, { autoescape: false, throwOnUndefined: true });
+nunjucks.installJinjaCompat()
+const templateEnv = new nunjucks.Environment(null, { autoescape: false, throwOnUndefined: true, noCache: true });
 
 export function renderObj(templatedObject: any, params: Record<string, unknown>) {
   return Object.fromEntries(
