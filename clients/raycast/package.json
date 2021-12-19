@@ -1,0 +1,265 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "lazy",
+  "title": "Lazy: Quickly Build Raycast Commands",
+  "description": "Raycast Lazycli Integration",
+  "icon": "command-icon.png",
+  "author": "pomdtr",
+  "license": "MIT",
+  "preferences": [
+    {
+      "name": "lazy-dir",
+      "description": "Directory containing all your lazy configs",
+      "type": "textfield",
+      "default": "~/.config/lazy",
+      "title": "Config Directory",
+      "required": true
+    },
+    {
+      "name": "lazy-path",
+      "description": "",
+      "type": "textfield",
+      "default": "/bin:/usr/bin:/usr/local/bin:/opt/homebrew:~/.local/bin",
+      "title": "PATH Variable",
+      "required": true
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.26.3"
+  },
+  "devDependencies": {
+    "@types/node": "~16.10.0",
+    "@types/react": "^17.0.28",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "react-devtools": "^4.19.2",
+    "typescript": "^4.4.3"
+  },
+  "scripts": {
+    "build": "node updateCommands && timeout 5 ray develop"
+  },
+  "commands": [
+    {
+      "name": "listcontainers",
+      "title": "📦 List Containers",
+      "keywords": [
+        "docker"
+      ],
+      "subtitle": "docker",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listfiles",
+      "title": "‣ List Files",
+      "keywords": [
+        "dynalist"
+      ],
+      "subtitle": "dynalist",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "browselazydirectory",
+      "title": "Browse Lazy Directory",
+      "keywords": [
+        "file-browser"
+      ],
+      "subtitle": "file-browser",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "browsedailymotiondirectory",
+      "title": "Browse Dailymotion Directory",
+      "keywords": [
+        "file-browser"
+      ],
+      "subtitle": "file-browser",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "browserootdirectory",
+      "title": "Browse Root Directory",
+      "keywords": [
+        "file-browser"
+      ],
+      "subtitle": "file-browser",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listgcloudprojects",
+      "title": "List Gcloud Projects",
+      "keywords": [
+        "dataflow"
+      ],
+      "subtitle": "dataflow",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listbackbonestagejobs",
+      "title": "List backbone stage jobs",
+      "keywords": [
+        "dataflow"
+      ],
+      "subtitle": "dataflow",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "searchdailymotionrepositories",
+      "title": "🔎 Search Dailymotion Repositories",
+      "keywords": [
+        "github"
+      ],
+      "subtitle": "github",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "searchmyrepositories",
+      "title": "🔎 Search My Repositories",
+      "keywords": [
+        "github"
+      ],
+      "subtitle": "github",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "myworkpullrequests",
+      "title": "🅿️ My Work Pull Requests",
+      "keywords": [
+        "github"
+      ],
+      "subtitle": "github",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listgists",
+      "title": "List Gists",
+      "keywords": [
+        "gist"
+      ],
+      "subtitle": "gist",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listdwhentityconfsitems",
+      "title": "💾 List dwh-entity-confs Items",
+      "keywords": [
+        "gsutil"
+      ],
+      "subtitle": "gsutil",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "myissues",
+      "title": "🏷 My Issues",
+      "keywords": [
+        "jira"
+      ],
+      "subtitle": "jira",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listdopissues",
+      "title": "🏷 List DOP Issues",
+      "keywords": [
+        "jira"
+      ],
+      "subtitle": "jira",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listentries",
+      "title": "📝 List Entries",
+      "keywords": [
+        "jrnl"
+      ],
+      "subtitle": "jrnl",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "switchcontext",
+      "title": "Switch Context",
+      "keywords": [
+        "kubectl"
+      ],
+      "subtitle": "kubectl",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "showpods",
+      "title": "Show Pods",
+      "keywords": [
+        "kubectl"
+      ],
+      "subtitle": "kubectl",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "printdate",
+      "title": "Print Date",
+      "keywords": [
+        "refresh"
+      ],
+      "subtitle": "refresh",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listtldrpages",
+      "title": "List TLDR Pages",
+      "keywords": [
+        "tldr"
+      ],
+      "subtitle": "tldr",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listdatasecrets",
+      "title": "🔐 List Data Secrets",
+      "keywords": [
+        "vault"
+      ],
+      "subtitle": "vault",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "listrecentprojects",
+      "title": "List Recent Projects",
+      "keywords": [
+        "vscode"
+      ],
+      "subtitle": "vscode",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    },
+    {
+      "name": "browsenodes",
+      "title": "Browse Nodes",
+      "keywords": [
+        "workflowy"
+      ],
+      "subtitle": "workflowy",
+      "description": "Auto-generated command by Lazy",
+      "mode": "view"
+    }
+  ]
+}
