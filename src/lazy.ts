@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 export namespace Lazy {
-  export interface Config {
+  export interface Script {
     requirements?: string[];
     packageName: string;
     preferences?: StepEnv;

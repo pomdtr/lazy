@@ -12,7 +12,7 @@ import { renderAction, renderObj, renderString } from "./template";
 export class LazyApi {
   packages: Record<string, Lazy.Package> = {};
   rootActions: Lazy.Item[] = [];
-  schema = JSON.parse(readFileSync(resolve(dirname(__dirname), "lib", "schema.json"), "utf-8"));
+  static schema = JSON.parse(readFileSync(resolve(dirname(__dirname), "lib", "schema.json"), "utf-8"));
   secrets: Record<string, string>;
   configDir: string;
 
@@ -21,21 +21,32 @@ export class LazyApi {
     this.secrets = existsSync(secretsPath) ? dotenv.parse(readFileSync(secretsPath, "utf-8")) : {};
   }
 
-  async load(): Promise<void> {
+  static async validate(config: unknown) {
+    const res = validate(config, LazyApi.schema);
+    if (res.errors.length) {
+      throw new Error("Invalid config:\n" + res.errors.map((e) => `\t${e.stack}`).join("\n"));
+    }
+  }
+
+  async load() {
     const configMap = await loadConfigs(this.configDir);
 
+    const validConfigs: Record<string, Lazy.Script> = {};
+    const invalidConfigs: Record<string, Lazy.Script> = {};
     for (const [filepath, config] of Object.entries(configMap)) {
-      const res = validate(config, this.schema);
-      if (res.errors.length) {
-        throw Error(`Invalid config ${filepath}: ${res.errors[0]}`);
+      try {
+        LazyApi.validate(config);
+        validConfigs[filepath] = config;
+      } catch {
+        invalidConfigs.push
       }
     }
 
     this.packages = Object.fromEntries(
-      Object.values(configMap).map((config) => [config.packageName, getPackage(config)])
+      Object.values(validConfigs).map((config) => [config.packageName, getPackage(config)])
     );
 
-    this.rootActions = Object.entries(configMap).flatMap(([filepath, config]) =>
+    this.rootActions = Object.entries(validConfigs).flatMap(([filepath, config]) =>
       config.rootActions.map((root) => {
         const packageName = root.type == "push" ? root.packageName || config.packageName : config.packageName;
         const action: Lazy.Action = root.type == "push" ? { ...root, packageName } : root;
@@ -50,6 +61,11 @@ export class LazyApi {
         } as Lazy.Item;
       })
     );
+
+    return {
+      loaded: Object.values(validConfigs).length,
+      invalid: Object.keys(invalidConfigs),
+    };
   }
 
   getStep(reference: Lazy.PushAction): Lazy.Step {
@@ -132,17 +148,17 @@ export class LazyApi {
   }
 }
 
-export async function loadConfigs(configDir: string): Promise<Record<string, Lazy.Config>> {
+export async function loadConfigs(configDir: string): Promise<Record<string, Lazy.Script>> {
   const configPaths = readdirSync(configDir)
-    .filter((filepath) => filepath.endsWith(".yaml"))
+    .filter((filepath) => filepath.endsWith(".yaml") || filepath.endsWith(".yml"))
     .map((file) => resolve(configDir, file));
   const loadConfig = (filepath: string) =>
-    readFile(filepath, "utf-8").then((content) => yaml.parse(content) as Lazy.Config);
+    readFile(filepath, "utf-8").then((content) => yaml.parse(content) as Lazy.Script);
   const entries = await Promise.all(configPaths.map(async (filepath) => [filepath, await loadConfig(filepath)]));
   return Object.fromEntries(entries);
 }
 
-export function getPackage(config: Lazy.Config): Lazy.Package {
+export function getPackage(config: Lazy.Script): Lazy.Package {
   const pkg: Lazy.Package = { steps: {}, preferences: config.preferences || {} };
 
   pkg.preferences = config.preferences || {};
