@@ -38,7 +38,8 @@
     "typescript": "^4.4.3"
   },
   "scripts": {
-    "build": "node updateCommands && timeout 5 ray develop"
+    "build": "node updateCommands && timeout 5 ray develop",
+    "dev": "ray develop"
   },
   "commands": [
     {
@@ -62,8 +63,8 @@
       "mode": "view"
     },
     {
-      "name": "browselazydirectory",
-      "title": "Browse Lazy Directory",
+      "name": "browselazyconfigdirectory",
+      "title": "Browse Lazy Config Directory",
       "keywords": [
         "file-browser"
       ],
@@ -72,8 +73,8 @@
       "mode": "view"
     },
     {
-      "name": "browsedailymotiondirectory",
-      "title": "Browse Dailymotion Directory",
+      "name": "browsehomedirectory",
+      "title": "Browse Home Directory",
       "keywords": [
         "file-browser"
       ],
