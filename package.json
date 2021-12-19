@@ -18,7 +18,6 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^10.0.0",
-    "glob": "^7.2.0",
     "jsonschema": "^1.4.0",
     "nunjucks": "^3.2.3",
     "yaml": "^1.10.2",
