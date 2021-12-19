@@ -4,8 +4,8 @@ Lazy is an helper tool allowing you to build an interactive UI for any command l
 
 Lazy integrate with multiple client and it is easy to write a new one one. Currently two are available:
 
-- `FZF`: [Bash Script](./scripts/lzy)
-- `Raycast` (Soon)
+- [fzf](./clients/fzf/README.md)
+- [raycast](./client/raycast/README.md)
 
 ## Installation
 
@@ -21,100 +21,121 @@ npm install -g
 
 ## Writing a config file
 
+Lazy parse all config files stored in `~/.config/lazy/scripts/` directory.
+
 ### Simple Example: file browser
 
 ```yaml
-packageName: file-browser # unique identifier for your packages
+packageName: file-browser
 
-steps:
-  list-files:
-    generator: ls -p1 {{ params.directory }} # Command generating the rows.
-    type: filter # generator lines will be filtered using your query
-    items:
-      actions: #
-        - condition: "{{ line.text.endsWith('/') }}" # This action will only be available if the condition is set to true
-          title: Switch Directory
-          type: ref # This action will redirect to another step
-          target: list-files # The target can be recursive
-          params:
-            directory: "{{ params.directory }}{{ line.text }}"
-
-        - title: Open
-          type: run # This target will trigger a command
-          command: open "{{ params.directory }}{{ line.text }}"
-
-roots: # Define root actions, accessible from the root views of client integration
-  - type: ref
+rootActions:
+  - type: push
+    title: Browse Lazy Config Directory
+    target: list-files
+    params:
+      directory: $HOME/.config/lazy/
+  - type: push
     title: Browse Home Directory
     target: list-files
     params:
-      directory: $HOME/
-  - type: ref
+      directory: /
+  - type: push
     title: Browse Root Directory
     target: list-files
     params:
       directory: /
-```
-
-Demo:
-
-## Advanced Example: Google Search
-
-```yaml
-packageName: googler
-
-requirements: # List cli apps required for the workflow
-  - googler
-  - jq
-  - curl
-
-roots:
-  - type: ref
-    title: 👀 Search Google
-    target: complete-query
 
 steps:
-  complete-query:
-    params:
-      default: Please input a query
-    generator: |
-      if [ -z "{{ query }}" ]; then
-        echo "{{ params.default }}"
-      else
-        { echo {{ query }} & curl 'https://www.google.com/complete/search?client=chrome&q={{ query | urlencode }}' | jq -r .[1][]; }
-      fi
-    type: query # The results will be refreshed each time the input change
+  list-files:
+    generator: ls -p1 '{{ params.directory }}'
     items:
+      preview: ls -l '{{params.directory}}{{ row.text }}'
       actions:
-        - type: run
-          title: Open URL
-          condition: "{{ line.text.startsWith('https') }}"
-          command: open '{{ line.text }}'
-        - type: ref
-          title: List Results
-          target: list-results # This action redirect to the list-result steps
-          condition: "{{ line.text != params.default }}"
+        - condition: "{{ row.text.endsWith('/') }}"
+          title: Switch Directory
+          type: push
+          target: list-files
           params:
-            search: "{{ line.text }}"
-        - type: run
-          title: Search in Google
-          condition: "{{ line.text != params.default }}"
-          command: open 'https://www.google.com/search?q={{ line.text | urlencode }}'
+            directory: "{{ params.directory }}{{ row.text }}"
 
-  list-results:
-    type: filter
-    generator: googler --json {{ params.search | dump}} | jq -c .[]
-    items:
-      title: "{{ line.json.title }}" # Here the row are in json format, but we can show a single field instead
-      subtitle: "{{ line.json.url }}"
-      preview: printf {{line.json.abstract | dump }} # The preview will be shown in a split pane if the client allow it
-      actions:
-        - title: "Open in browser"
+        - title: Open
           type: run
-          command: open '{{ line.json.url }}'
-        - title: "Copy URL"
-          type: run
-          command: echo '{{ line.json.url }}' | pbcopy
+          command: open "{{ params.directory }}{{ row.text }}"
 ```
 
-## Specifications
+## Advanced Example: Github Workflow
+
+```yaml
+packageName: github
+
+preferences:
+  user: pomdtr
+
+requirements:
+  - gh
+  - bkt
+  - jq
+
+rootActions:
+  - title: 🔎 Search Dailymotion Repositories
+    type: push
+    target: "repo-filter"
+    params:
+      filter: org:dailymotion
+      duration: 7d
+
+  - title: 🔎 Search My Repositories
+    type: push
+    target: "repo-filter"
+    params:
+      filter: user:pomdtr
+
+  - title: 🅿️ My Work Pull Requests
+    type: push
+    target: "pr-search"
+    params:
+      filter: "author:{{ preferences.user }} org:dailymotion state:open"
+
+steps:
+  repo-filter:
+    generator: |
+      bkt --ttl "7 days" -- gh api -X GET search/repositories \
+        --paginate --field "q={{params.filter}}" --jq '.items[]'
+    items:
+      title: "{{ row.json.name }}"
+      subtitle: "{{ row.json.description or '' }}"
+      preview: |
+        cat << EOF
+        {{ row.json | dump(2) }}
+        EOF
+      actions:
+        - title: Open in Browser
+          type: open
+          target: "{{ row.json.html_url }}"
+        - title: Open in Github.dev
+          type: open
+          target: '{{ row.json.html_url.replace("github.com", "github.dev") }}'
+        - title: Open in VSCode
+          type: open
+          target: 'vscode://github.remotehub/open?url={{ row.json.html_url | urlencode }}'
+        - title: List Pull Requests
+          type: push
+          target: pr-search
+          params:
+            filter: "repo:{{ row.json.full_name }} state:open"
+        - title: Copy Url
+          type: copy
+          content: "{{ row.json.html_url }}"
+
+  pr-search:
+    generator:
+      gh api -X GET search/issues \
+        -F q="{{ params.filter }} type:pr" | jq -c .items[]
+    items:
+      title: "{{ row.json.title }}"
+      subtitle: "{{ row.json.state }} - {{ row.json.repository_url.split('/') | last }}"
+      actions:
+        - type: run
+          title: Open in browser
+          command: open {{row.json.html_url}}
+```
