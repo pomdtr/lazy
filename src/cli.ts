@@ -9,21 +9,21 @@ import { LazyApi } from "./api";
 import { Lazy } from "./lazy";
 
 const DEFAULT_CONFIG_DIR = resolve(homedir(), ".config", "lazy");
+const DEFAULT_SCRIPT_DIR = resolve(DEFAULT_CONFIG_DIR, "scripts");
 const DEFAULT_SECRETS_PATH = resolve(DEFAULT_CONFIG_DIR, ".secrets.env");
 
 yargs(hideBin(process.argv))
   .command("ls", "List the available commands", {}, async (argv) => {
-    const lazyApi = new LazyApi(argv.configDir as string, argv.secretsPath as string);
+    const lazyApi = new LazyApi(argv.scriptsDir as string, argv.secretsPath as string);
     await lazyApi.load();
     console.log(lazyApi.rootActions.map((root) => JSON.stringify(root)).join("\n"));
   })
-
   .command(
     "get",
     "Get the available items",
     () => null,
     async (argv) => {
-      const lazyApi = new LazyApi(argv.configDir as string, argv.secretsPath as string);
+      const lazyApi = new LazyApi(argv.scriptsDir as string, argv.secretsPath as string);
       await lazyApi.load();
       const input = readFileSync(0, "utf-8");
       const ref: Lazy.PushAction = JSON.parse(input);
@@ -35,7 +35,7 @@ yargs(hideBin(process.argv))
     }
   )
   .command("run", "Run a Command", {}, async (argv) => {
-    const lazyApi = new LazyApi(argv.configDir as string, argv.secretsPath as string);
+    const lazyApi = new LazyApi(argv.scriptsDir as string, argv.secretsPath as string);
     await lazyApi.load();
     const input = readFileSync(0, "utf-8");
     const action: Lazy.RunAction | Lazy.CopyAction | Lazy.OpenAction = JSON.parse(input);
@@ -55,7 +55,7 @@ yargs(hideBin(process.argv))
     }
 
   })
-  .option("config-dir", { default: DEFAULT_CONFIG_DIR, description: "The directory to store the config files" })
+  .option("scripts-dir", { default: DEFAULT_SCRIPT_DIR, description: "The directory to store the config files" })
   .option("secrets-path", { default: DEFAULT_SECRETS_PATH, description: "The path to the secrets file" })
   .demandCommand(1, "You need at least one command before moving on")
   .strict()

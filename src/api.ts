@@ -1,8 +1,7 @@
 import { execSync } from "child_process";
 import dotenv from "dotenv";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readdirSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
-import glob from "glob";
 import { validate } from "jsonschema";
 import { homedir } from "os";
 import { dirname, resolve } from "path";
@@ -134,10 +133,12 @@ export class LazyApi {
 }
 
 export async function loadConfigs(configDir: string): Promise<Record<string, Lazy.Config>> {
-  const matches = glob.sync("**/*.yaml", { cwd: configDir, absolute: true });
+  const configPaths = readdirSync(configDir)
+    .filter((filepath) => filepath.endsWith(".yaml"))
+    .map((file) => resolve(configDir, file));
   const loadConfig = (filepath: string) =>
     readFile(filepath, "utf-8").then((content) => yaml.parse(content) as Lazy.Config);
-  const entries = await Promise.all(matches.map(async (filepath) => [filepath, await loadConfig(filepath)]));
+  const entries = await Promise.all(configPaths.map(async (filepath) => [filepath, await loadConfig(filepath)]));
   return Object.fromEntries(entries);
 }
 
