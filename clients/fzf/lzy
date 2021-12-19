@@ -5,7 +5,7 @@ set -o pipefail
 tmpdir=$(mktemp -d)
 trap 'rm -r $tmpdir' SIGINT EXIT
 
-function filterRows() {
+function choose() {
     fzf --delimiter '\t' \
         --height 40% \
         --header "Enter: Primary Action, Alt-enter: list actions, Alt+r: Reload List, Alt+space: Show Preview, Escape: Go Back" \
@@ -16,14 +16,13 @@ function filterRows() {
         --preview-window "hidden:wrap" \
         --reverse \
         --cycle \
-        --bind "alt-r:reload(cat $tmpdir/current | lazy ref --skip-cache | jq -r '.items[] | \"\(.title)\t\(.subtitle)\t\(.actions[0])\t\(.)\"')" \
-        --bind "alt-space:toggle-preview" \
-        --bind "?:preview(echo {3} | jq -rc '.actions | map(.title) | to_entries | .[] | \"\(if .key == 0 then \"enter\" else \"alt-\(.key)\" end) -> \(.value)\"')"
+        --bind "alt-r:reload(cat $tmpdir/current | lazy ref --skip-cache | jq -r '\"\(.title)\t\(.subtitle)\t\(.actions[0])\t\(.)\"')" \
+        --bind "alt-space:toggle-preview"
 }
 
 function step() {
     rows="$(jq -r '. | "\(.title)\t\(.subtitle)\t\(.)"' <"$1")"
-    selectedItem="$(filterRows <<<"$rows")"
+    selectedItem="$(choose <<<"$rows")"
     exitCode="$?"
     if [ "$exitCode" -eq 2 ]; then
         exit 1
@@ -69,8 +68,7 @@ while true; do
     action_type="$(jq -r .type <"$tmpdir/next")"
     if [ "$action_type" = "push" ]; then
         set -e
-        list="$(lazy get <"$tmpdir/next")"
-        items="$(jq -cM '.items[]' <<<"$list")"
+        items="$(lazy get <"$tmpdir/next")"
         set +e
 
         step_index=$((step_index + 1))

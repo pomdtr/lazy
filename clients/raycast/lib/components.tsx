@@ -10,7 +10,8 @@ import {
   List,
   popToRoot,
   PushAction,
-  showHUD, Toast,
+  showHUD,
+  Toast,
   ToastStyle
 } from "@raycast/api";
 import { spawnSync } from "child_process";
@@ -49,17 +50,30 @@ export function Preview(props: { command: Lazy.Command }) {
   );
 }
 
-export function Step(props: { reference: Lazy.StepReference }) {
+export function Step(props: { reference?: Lazy.StepReference }) {
   const { reference } = props;
-  const [state, setState] = useState<{ list?: Lazy.List; isLoading: boolean }>({ isLoading: true });
+  const [state, setState] = useState<{ items?: Lazy.Item[]; isLoading: boolean }>({ isLoading: true });
   const refreshItems = () => {
+    if (!props.reference) {
+      const { stdout } = spawnSync("lazy", ["ls"], { encoding: "utf8", maxBuffer: 1024 * 1024 * 10 });
+      const items = stdout
+        .split("\n")
+        .filter((line) => line)
+        .map((line) => JSON.parse(line));
+      console.log(items)
+      setState({ items, isLoading: false });
+      return
+    }
+
     const input = JSON.stringify(reference);
     setState({ ...state, isLoading: true });
-    console.log(input);
     try {
       const { stdout } = spawnSync("lazy", ["get"], { input, encoding: "utf8", maxBuffer: 1024 * 1024 * 10 });
-      const list: Lazy.List = JSON.parse(stdout);
-      setState({ list, isLoading: false });
+      const items = stdout
+        .split("\n")
+        .filter((line) => line)
+        .map((line) => JSON.parse(line));
+      setState({ items, isLoading: false });
     } catch (e: any) {
       console.error(e);
       const toast = new Toast({
@@ -74,7 +88,7 @@ export function Step(props: { reference: Lazy.StepReference }) {
 
   return (
     <List isLoading={state.isLoading}>
-      {state.list?.items.map((item, index) => (
+      {state.items?.map((item, index) => (
         <ListItem item={item} key={index} />
       ))}
     </List>
