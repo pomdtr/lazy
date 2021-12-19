@@ -47,9 +47,9 @@ rootActions:
 
 steps:
   list-files:
-    generator: ls -p1 '{{ params.directory }}'
+    generator: ls -p1 "{{ params.directory }}"
     items:
-      preview: ls -l '{{params.directory}}{{ row.text }}'
+      preview: ls -l "{{params.directory}}{{ row.text }}"
       actions:
         - condition: "{{ row.text.endsWith('/') }}"
           title: Switch Directory
