@@ -130,7 +130,7 @@ export class LazyApi {
     return generator.skip_rows ? rows.slice(generator.skip_rows) : rows;
   }
 
-  async getList(step: Lazy.Step): Promise<Lazy.List> {
+  async getItems(step: Lazy.Step): Promise<Lazy.Item[]> {
     const itemTemplate = step.items;
     const packageName = step.packageName;
     const templateParams = {
@@ -142,11 +142,9 @@ export class LazyApi {
 
     const rows = await this.fetchLines(generator, templateParams);
 
-    return {
-      items: rows.map((row) => {
+    return rows.map((row) => {
         return itemTemplate ? this.rowToItem(row, packageName, itemTemplate, templateParams) : { title: row };
-      }),
-    };
+      })
   }
 }
 

@@ -33,9 +33,9 @@ yargs(hideBin(process.argv))
       const ref: Lazy.PushAction = JSON.parse(input);
       const step = lazyApi.getStep(ref);
 
-      const list = await lazyApi.getList(step);
+      const items = await lazyApi.getItems(step);
 
-      console.log(JSON.stringify(list));
+      console.log(items.map((item) => JSON.stringify(item)).join("\n"));
     }
   )
   .command("run", "Run a Command", {}, async (argv) => {
