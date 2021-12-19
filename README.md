@@ -63,6 +63,10 @@ steps:
           command: open "{{ params.directory }}{{ row.text }}"
 ```
 
+
+https://user-images.githubusercontent.com/17577332/146687351-1189d136-d52b-4462-a706-b54ad0c2ffde.mp4
+
+
 ## Advanced Example: Github Workflow
 
 ```yaml
@@ -139,3 +143,6 @@ steps:
           title: Open in browser
           command: open {{row.json.html_url}}
 ```
+
+https://user-images.githubusercontent.com/17577332/146687417-29301610-3477-457b-ad91-c023f8de657d.mp4
+
