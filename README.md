@@ -1,4 +1,4 @@
-# Lazy - Never Build a TUI Again
+# Lazy - Universal Launcher
 
 Lazy is an helper tool allowing you to build an interactive UI for any command line app using a simple YAML config file.
 
