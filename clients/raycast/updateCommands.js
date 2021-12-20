@@ -5,7 +5,7 @@ const { resolve } = require("path/posix");
 
 function sanitizeFilename(filename) {
   const sanitized = filename.toLowerCase().replace(/[^a-zA-Z0-9]+/g, "");
-  return `script_${sanitized}`;
+  return `${sanitized}`;
 }
 
 const res = spawnSync("lazy", ["ls"], { encoding: "utf8" }).stdout.trim();
@@ -13,21 +13,13 @@ const lines = res.split("\n");
 const roots = lines.map((line) => JSON.parse(line));
 
 const commandDir = resolve(__dirname, "src");
-for (const commandFileName of fs.readdirSync(commandDir).filter((filename) => filename.startsWith("script_"))) {
-  fs.rmSync(resolve(commandDir, commandFileName));
+for (const filename of fs.readdirSync(commandDir)) {
+  const filePath = resolve(commandDir, filename);
+  if (fs.lstatSync(filePath).isSymbolicLink()) fs.rmSync(filePath);
 }
 
 for (const root of roots) {
-  const template = `import { getPreferenceValues } from "@raycast/api";
-import { Step } from "../lib/components";
-
-export default function Command() {
-  const { payload } = getPreferenceValues();
-  const ref = JSON.parse(payload);
-  return <Step reference={ref} />;
-}
-`;
-  fs.writeFileSync(resolve(commandDir, `${sanitizeFilename(root.title)}.tsx`), template);
+  fs.symlinkSync(resolve(commandDir, "entrypoint.tsx"), resolve(commandDir, `${sanitizeFilename(root.title)}.tsx`));
 }
 
 const manifestPath = resolve(__dirname, "package.json");

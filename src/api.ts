@@ -9,6 +9,8 @@ import yaml from "yaml";
 import { Lazy } from "./lazy";
 import { renderAction, renderObj, renderString } from "./template";
 
+const platform = process.platform
+
 export class LazyApi {
   packages: Record<string, Lazy.Package> = {};
   rootActions: Lazy.Item[] = [];
@@ -135,6 +137,7 @@ export class LazyApi {
     const packageName = step.packageName;
     const templateParams = {
       secrets: this.secrets,
+      platform: platform,
       preferences: this.packages[packageName].preferences,
       params: step.params,
     };

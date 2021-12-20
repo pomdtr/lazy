@@ -134,16 +134,12 @@ export function ListItem(props: { item: Lazy.Item }) {
 export function Action(props: { action: Lazy.RunAction | Lazy.CopyAction | Lazy.OpenAction; onAction?: () => void }) {
   const { action, onAction } = props;
 
-  const displayRes = (content: string) => {
-    return showHUD(content);
-  };
-
   const runCommand = async () => {
     const input = JSON.stringify(props.action);
     try {
+      closeMainWindow();
       const { stdout } = spawnSync("lazy", ["run"], { input, encoding: "utf-8" });
-      if (stdout) displayRes(stdout);
-      await closeMainWindow();
+      if (stdout) showHUD(stdout);
       await popToRoot();
     } catch (e: any) {
       console.error(e);

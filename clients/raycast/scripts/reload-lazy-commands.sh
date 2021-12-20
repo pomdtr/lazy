@@ -14,4 +14,4 @@
 # @raycast.authorURL https://github.com/pomdtr
 
 cd ..
-timeout 2 npm run build || true
+npm run build

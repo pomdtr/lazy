@@ -53,7 +53,7 @@
       "mode": "view"
     },
     {
-      "name": "script_showcontainers",
+      "name": "showcontainers",
       "title": "📦 Show Containers",
       "keywords": [
         "docker"
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "name": "script_listdocuments",
+      "name": "listdocuments",
       "title": "‣ List Documents",
       "keywords": [
         "dynalist"
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "name": "script_browselazyconfigdirectory",
+      "name": "browselazyconfigdirectory",
       "title": "Browse Lazy Config Directory",
       "keywords": [
         "file-browser"
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "name": "script_browsehomedirectory",
+      "name": "browsehomedirectory",
       "title": "Browse Home Directory",
       "keywords": [
         "file-browser"
@@ -133,7 +133,7 @@
       ]
     },
     {
-      "name": "script_browserootdirectory",
+      "name": "browserootdirectory",
       "title": "Browse Root Directory",
       "keywords": [
         "file-browser"
@@ -153,7 +153,7 @@
       ]
     },
     {
-      "name": "script_listgcloudprojects",
+      "name": "listgcloudprojects",
       "title": "List Gcloud Projects",
       "keywords": [
         "dataflow"
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "name": "script_listbackbonestagejobs",
+      "name": "listbackbonestagejobs",
       "title": "List backbone stage jobs",
       "keywords": [
         "dataflow"
@@ -193,7 +193,7 @@
       ]
     },
     {
-      "name": "script_searchdailymotionrepositories",
+      "name": "searchdailymotionrepositories",
       "title": "🔎 Search Dailymotion Repositories",
       "keywords": [
         "github"
@@ -213,7 +213,7 @@
       ]
     },
     {
-      "name": "script_searchmyrepositories",
+      "name": "searchmyrepositories",
       "title": "🔎 Search My Repositories",
       "keywords": [
         "github"
@@ -233,7 +233,7 @@
       ]
     },
     {
-      "name": "script_myworkpullrequests",
+      "name": "myworkpullrequests",
       "title": "🅿️ My Work Pull Requests",
       "keywords": [
         "github"
@@ -253,7 +253,7 @@
       ]
     },
     {
-      "name": "script_listgists",
+      "name": "listgists",
       "title": "List Gists",
       "keywords": [
         "gist"
@@ -273,7 +273,7 @@
       ]
     },
     {
-      "name": "script_listdwhentityconfsitems",
+      "name": "listdwhentityconfsitems",
       "title": "💾 List dwh-entity-confs Items",
       "keywords": [
         "gsutil"
@@ -293,7 +293,7 @@
       ]
     },
     {
-      "name": "script_myissues",
+      "name": "myissues",
       "title": "🏷 My Issues",
       "keywords": [
         "jira"
@@ -313,7 +313,7 @@
       ]
     },
     {
-      "name": "script_listdopissues",
+      "name": "listdopissues",
       "title": "🏷 List DOP Issues",
       "keywords": [
         "jira"
@@ -333,7 +333,7 @@
       ]
     },
     {
-      "name": "script_listentries",
+      "name": "listentries",
       "title": "📝 List Entries",
       "keywords": [
         "jrnl"
@@ -353,7 +353,7 @@
       ]
     },
     {
-      "name": "script_switchcontext",
+      "name": "switchcontext",
       "title": "Switch Context",
       "keywords": [
         "kubectl"
@@ -373,7 +373,7 @@
       ]
     },
     {
-      "name": "script_showpods",
+      "name": "showpods",
       "title": "Show Pods",
       "keywords": [
         "kubectl"
@@ -393,7 +393,7 @@
       ]
     },
     {
-      "name": "script_printdate",
+      "name": "printdate",
       "title": "Print Date",
       "keywords": [
         "refresh"
@@ -413,7 +413,7 @@
       ]
     },
     {
-      "name": "script_listtldrpages",
+      "name": "listtldrpages",
       "title": "List TLDR Pages",
       "keywords": [
         "tldr"
@@ -433,7 +433,7 @@
       ]
     },
     {
-      "name": "script_listdatasecrets",
+      "name": "listdatasecrets",
       "title": "🔐 List Data Secrets",
       "keywords": [
         "vault"
@@ -453,7 +453,7 @@
       ]
     },
     {
-      "name": "script_listrecentprojects",
+      "name": "listrecentprojects",
       "title": "List Recent Projects",
       "keywords": [
         "vscode"
@@ -473,7 +473,7 @@
       ]
     },
     {
-      "name": "script_browsenodes",
+      "name": "browsenodes",
       "title": "Browse Nodes",
       "keywords": [
         "workflowy"
