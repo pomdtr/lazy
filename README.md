@@ -21,7 +21,7 @@ npm install -g
 
 ## Writing a config file
 
-Lazy parse all config files stored in `~/.config/lazy/scripts/` directory.
+Lzy parse all config files stored in `~/.config/lazy/scripts/` directory.
 
 ### Simple Example: file browser
 
