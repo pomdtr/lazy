@@ -1,8 +1,8 @@
-# Lazy - Universal Launcher
+# Lzy - Universal Launcher
 
-Lazy is an helper tool allowing you to build an interactive UI for any command line app using a simple YAML config file.
+Lzy is an helper tool allowing you to build an interactive UI for any command line app using a simple YAML config file.
 
-Lazy integrate with multiple client and it is easy to write a new one one. Currently two are available:
+Lzy integrate with multiple client and it is easy to write a new one one. Currently two are available:
 
 - [fzf](./clients/fzf/README.md)
 - [raycast](./client/raycast/README.md)
