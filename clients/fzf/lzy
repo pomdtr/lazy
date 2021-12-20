@@ -68,7 +68,7 @@ while true; do
     action_type="$(jq -r .type <"$tmpdir/next")"
     if [ "$action_type" = "push" ]; then
         set -e
-        items="$(lazy get <"$tmpdir/next")"
+        items="$(lazy ls - <"$tmpdir/next")"
         set +e
 
         step_index=$((step_index + 1))

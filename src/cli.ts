@@ -14,27 +14,22 @@ const DEFAULT_SCRIPT_DIR = resolve(DEFAULT_CONFIG_DIR, "scripts");
 const DEFAULT_SECRETS_PATH = resolve(DEFAULT_CONFIG_DIR, ".secrets.env");
 
 yargs(hideBin(process.argv))
-  .command("ls", "List the available commands", {}, async (argv) => {
-    const lazyApi = new LazyApi(argv.scriptsDir as string, argv.secretsPath as string);
-    const res = await lazyApi.load();
-    for (const filepath of res.invalid) {
-      console.error(`Skipping invalid script: ${filepath}`);
-    }
-    console.log(lazyApi.rootActions.map((root) => JSON.stringify(root)).join("\n"));
-  })
   .command(
-    "get",
-    "Get the available items",
-    () => null,
+    "ls [file]",
+    "List items.",
+    (yargs) => yargs.option("file", { type: "string", nargs: 1, description: "Use file as payload (or - for stdin)" }),
     async (argv) => {
       const lazyApi = new LazyApi(argv.scriptsDir as string, argv.secretsPath as string);
       await lazyApi.load();
-      const input = readFileSync(0, "utf-8");
+
+      if (!argv.file) {
+        console.log(lazyApi.rootActions.map((root) => JSON.stringify(root)).join("\n"));
+        return;
+      }
+      const input = argv.file == "-" ? readFileSync(0, "utf-8") : readFileSync(argv.file as string, "utf-8");
       const ref: Lazy.PushAction = JSON.parse(input);
       const step = lazyApi.getStep(ref);
-
       const items = await lazyApi.getItems(step);
-
       console.log(items.map((item) => JSON.stringify(item)).join("\n"));
     }
   )

@@ -53,22 +53,12 @@ export function Preview(props: { command: Lazy.Command }) {
 export function Step(props: { reference?: Lazy.StepReference }) {
   const { reference } = props;
   const [state, setState] = useState<{ items?: Lazy.Item[]; isLoading: boolean }>({ isLoading: true });
-  const refreshItems = () => {
-    if (!props.reference) {
-      const { stdout } = spawnSync("lazy", ["ls"], { encoding: "utf8", maxBuffer: 1024 * 1024 * 10 });
-      const items = stdout
-        .split("\n")
-        .filter((line) => line)
-        .map((line) => JSON.parse(line));
-      console.log(items)
-      setState({ items, isLoading: false });
-      return
-    }
 
-    const input = JSON.stringify(reference);
-    setState({ ...state, isLoading: true });
+  const refreshItems = () => {
+    const input = props.reference ? JSON.stringify(reference) : undefined;
+    const args = input ? ["ls", "-"] : ["ls"];
     try {
-      const { stdout } = spawnSync("lazy", ["get"], { input, encoding: "utf8", maxBuffer: 1024 * 1024 * 10 });
+      const { stdout } = spawnSync("lazy", args, { input, encoding: "utf8", maxBuffer: 1024 * 1024 * 10 });
       const items = stdout
         .split("\n")
         .filter((line) => line)
@@ -84,6 +74,7 @@ export function Step(props: { reference?: Lazy.StepReference }) {
       toast.show();
     }
   };
+
   useEffect(refreshItems, []);
 
   return (
@@ -124,7 +115,6 @@ export function ListItem(props: { item: Lazy.Item }) {
               target={<Preview command={item.preview as unknown as Lazy.Command} />}
             />
           ) : null}
-          <ActionPanel.Item title="Reload" icon={Icon.ArrowClockwise} />
         </ActionPanel>
       }
     />
