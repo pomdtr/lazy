@@ -14,4 +14,4 @@
 # @raycast.authorURL https://github.com/pomdtr
 
 cd ..
-npm run build
+node updateCommands.js && npm run dev
